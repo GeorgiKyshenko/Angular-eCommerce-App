@@ -12,6 +12,9 @@ import { ActivatedRoute } from '@angular/router';
 export class ProductListComponent implements OnInit {
   products: Product[] = [];
   categoryId!: number;
+  currentCategoryName!: string;
+  searchMode!: boolean;
+
   constructor(
     private readonly productService: ProductService,
     private readonly route: ActivatedRoute
@@ -24,19 +27,38 @@ export class ProductListComponent implements OnInit {
   }
 
   listOfProducts() {
+    this.searchMode = this.route.snapshot.paramMap.has('keyword');
+
+    if (this.searchMode) {
+      this.handleSearchProducts();
+    } else {
+      this.handleListProducts();
+    }
+  }
+  handleSearchProducts() {
+    const keyword = this.route.snapshot.paramMap.get('keyword')!;
+
+    this.productService.searchProducts(keyword).subscribe((data) => {
+      this.products = data;
+    });
+  }
+
+  handleListProducts() {
     const hasCategoryId = this.route.snapshot.paramMap.has('id');
 
     if (hasCategoryId) {
       this.categoryId = +this.route.snapshot.paramMap.get('id')!;
-    } else {
-      //better to throw error, but for now we set categoryId = 1
-      this.categoryId = 1;
-    }
+      this.currentCategoryName = this.route.snapshot.paramMap.get('name')!;
 
-    this.productService
-      .getProductList(this.categoryId)
-      .subscribe((products) => {
-        this.products = products;
+      this.productService
+        .getProductListByCategory(this.categoryId)
+        .subscribe((productsData) => {
+          this.products = productsData;
+        });
+    } else {
+      this.productService.getAllProductsList().subscribe((allProducts) => {
+        this.products = allProducts;
       });
+    }
   }
 }
