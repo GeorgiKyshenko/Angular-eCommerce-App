@@ -12,6 +12,10 @@ export class SearchComponent implements OnInit {
   ngOnInit(): void {}
 
   doSearch(value: string) {
-    this.router.navigateByUrl(`/search/${value}`);
+    if (value) {
+      this.router.navigateByUrl(`/search/${value}`);
+    } else {
+      this.router.navigateByUrl(`/products`);
+    }
   }
 }

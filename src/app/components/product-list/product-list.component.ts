@@ -45,8 +45,9 @@ export class ProductListComponent implements OnInit {
 
   handleListProducts() {
     const hasCategoryId = this.route.snapshot.paramMap.has('id');
+    const hasCategoryName = this.route.snapshot.paramMap.has('name');
 
-    if (hasCategoryId) {
+    if (hasCategoryId && hasCategoryName) {
       this.categoryId = +this.route.snapshot.paramMap.get('id')!;
       this.currentCategoryName = this.route.snapshot.paramMap.get('name')!;
 

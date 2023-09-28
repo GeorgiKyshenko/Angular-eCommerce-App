@@ -10,9 +10,20 @@ import { ProductCategory } from '../common/product-category';
 export class ProductService {
   //this URL is set automatically in Spring Data Rest. Autocreated paths for products and category also, query params for size,page,sort
   private baseUrl = 'http://localhost:8080/api/products';
+  private allProductsUrl = 'http://localhost:8080/api/products?size=100';
   private productsCategoryURL = 'http://localhost:8080/api/product-category';
 
   constructor(private readonly httpClient: HttpClient) {}
+
+  // getProductListPaginate(
+  //   page: number,
+  //   pageSize: number,
+  //   categoryId: number
+  // ): Observable<GetResponseProducts> {
+  //   const searchUrl = `${this.baseUrl}/search/findByCategoryId?id=${categoryId}`;
+
+  //   return this.getProducts(searchUrl);
+  // }
 
   getProductListByCategory(categoryId: number): Observable<Product[]> {
     const searchUrl = `${this.baseUrl}/search/findByCategoryId?id=${categoryId}`;
@@ -22,7 +33,7 @@ export class ProductService {
 
   getAllProductsList(): Observable<Product[]> {
     return this.httpClient
-      .get<GetResponseProducts>(this.baseUrl)
+      .get<GetResponseProducts>(this.allProductsUrl)
       .pipe(map((response) => response._embedded.products));
   }
 
@@ -37,6 +48,11 @@ export class ProductService {
 
     return this.getProducts(searchUrl);
   }
+  getProductDetails(productId: number): Observable<Product> {
+    const productDetailsUrl = `${this.baseUrl}/${productId}`;
+
+    return this.httpClient.get<Product>(productDetailsUrl);
+  }
 
   private getProducts(searchUrl: string) {
     return this.httpClient
@@ -48,6 +64,12 @@ export class ProductService {
 interface GetResponseProducts {
   _embedded: {
     products: Product[];
+  };
+  page: {
+    size: number;
+    totalElements: number;
+    totalPages: number;
+    number: number;
   };
 }
 
