@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { Observable } from 'rxjs';
 import { Product } from 'src/app/models/product';
 import { ProductService } from 'src/app/services/product.service';
 
@@ -9,7 +10,7 @@ import { ProductService } from 'src/app/services/product.service';
   styleUrls: ['./product-details.component.css'],
 })
 export class ProductDetailsComponent implements OnInit {
-  product!: Product;
+  product$!: Observable<Product>;
 
   constructor(
     private readonly productService: ProductService,
@@ -25,8 +26,6 @@ export class ProductDetailsComponent implements OnInit {
   handleProductDetails() {
     const productId = +this.route.snapshot.paramMap.get('id')!;
 
-    this.productService.getProductDetails(productId).subscribe((data) => {
-      this.product = data;
-    });
+    this.product$ = this.productService.getProductDetails(productId);
   }
 }
