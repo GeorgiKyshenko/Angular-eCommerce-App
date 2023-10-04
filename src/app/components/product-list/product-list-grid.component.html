@@ -29,7 +29,13 @@
             <div class="price">
               {{ product.unitPrice | currency : "USD" }}
             </div>
-            <a href="#" class="primary-btn">Add to cart</a>
+            <button
+              type="button"
+              (click)="addToCart(product)"
+              class="btn btn-primary btn-sm"
+            >
+              Add to cart
+            </button>
           </div>
         </div>
 
@@ -43,19 +49,37 @@
         </div>
       </div>
 
+      <!-- pagination-->
       <div class="footer-pagination">
         <div class="row">
           <div class="col-md-6"></div>
           <div class="col-md-6">
             <div class="row">
               <div class="col-md-9" style="padding-left: 30%">
+                <!-- all paramethers in ngb-paginations are from ngb-->
                 <ngb-pagination
                   [(page)]="pageNumber"
                   [pageSize]="pageSize"
+                  [maxSize]="5"
+                  [boundaryLinks]="true"
                   [collectionSize]="pageTotalElements"
                   (pageChange)="listOfProducts()"
                 >
                 </ngb-pagination>
+              </div>
+              <!-- drop down menu-->
+              <div class="col-md-3 mt-2" style="text-align: right">
+                <span class="mr-2">Page Size</span>
+                <select
+                  title="pageSize"
+                  #input
+                  (change)="updatePageSize(input.value)"
+                >
+                  <option selected="true">8</option>
+                  <option>12</option>
+                  <option>20</option>
+                  <option>50</option>
+                </select>
               </div>
             </div>
           </div>

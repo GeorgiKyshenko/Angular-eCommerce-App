@@ -1,11 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Product } from 'src/app/models/product';
-import {
-  GetResponseProducts,
-  ProductService,
-} from 'src/app/services/product.service';
-import { ActivatedRoute, Route, Router } from '@angular/router';
-import { Observable, of } from 'rxjs';
+import { ProductService } from 'src/app/services/product.service';
+import { ActivatedRoute } from '@angular/router';
+import { CartItem } from 'src/app/models/CartItem';
+import { CartService } from 'src/app/services/cart.service';
 
 @Component({
   selector: 'app-product-list',
@@ -18,13 +16,15 @@ export class ProductListComponent implements OnInit {
   categoryId!: number;
   previousCategoryId!: number;
   currentCategoryName!: string;
+  previousKeyword!: string;
   searchMode!: boolean;
   pageNumber: number = 1;
-  pageSize: number = 12;
+  pageSize: number = 8;
   pageTotalElements: number = 0;
 
   constructor(
     private readonly productService: ProductService,
+    private readonly cartService: CartService,
     private readonly route: ActivatedRoute
   ) {}
 
@@ -46,47 +46,17 @@ export class ProductListComponent implements OnInit {
   handleSearchProducts() {
     const keyword = this.route.snapshot.paramMap.get('keyword')!;
 
-    this.productService.searchProducts(keyword).subscribe((data) => {
-      this.products = data;
-    });
-  }
-
-  handleListProducts2() {
-    const hasCategoryId = this.route.snapshot.paramMap.has('id');
-    const hasCategoryName = this.route.snapshot.paramMap.has('name');
-
-    if (hasCategoryId && hasCategoryName) {
-      this.categoryId = +this.route.snapshot.paramMap.get('id')!;
-      this.currentCategoryName = this.route.snapshot.paramMap.get('name')!;
-
-      this.productService
-        .getProductListByCategory(this.categoryId)
-        .subscribe((data) => {
-          this.products = data;
-        });
-      //1.Check if we have different category than previous
-      //Angular will reuse a component if it is currently being viewed
-
-      //2.if we have different category then previous, then set the page number to 1
-
-      if (this.previousCategoryId !== this.categoryId) {
-        this.pageNumber = 1;
-      }
-      this.previousCategoryId = this.categoryId;
-    } else {
-      this.productService
-        .getProductListPaginated(
-          this.pageNumber - 1,
-          this.pageSize,
-          this.categoryId
-        )
-        .subscribe((data) => {
-          this.products = data._embedded.products;
-          this.pageNumber = data.page.number + 1;
-          this.pageSize = data.page.size;
-          this.pageTotalElements = data.page.totalElements;
-        });
+    //if we have different keyword than previous, then set the page number to 1
+    //in this logic if you search produc by its name and go to page 3 for example and press search with the exact same word
+    // you will stay on the same page. Only if you search a new product by different keyword then u are redirected to page number 1 of that product match.
+    if (this.previousKeyword !== keyword) {
+      this.pageNumber = 1;
     }
+    this.previousKeyword = keyword;
+
+    this.productService
+      .searchProductsPaginate(this.pageNumber - 1, this.pageSize, keyword)
+      .subscribe(this.processResult());
   }
 
   handleListProducts() {
@@ -98,44 +68,54 @@ export class ProductListComponent implements OnInit {
       // get the "id" param string. convert string to a number using the "+" symbol
       this.categoryId = +this.route.snapshot.paramMap.get('id')!;
       this.currentCategoryName = this.route.snapshot.paramMap.get('name')!;
+
+      // Check if we have a different category than previous
+      // Note: Angular will reuse a component if it is currently being viewed
+      //
+
+      // if we have a different category id than previous
+      // then set thePageNumber back to 1
+      if (this.previousCategoryId != this.categoryId) {
+        this.pageNumber = 1;
+      }
+
+      this.previousCategoryId = this.categoryId;
+
+      // now get the products for the given category id
+      this.productService
+        .getProductListPaginated(
+          this.pageNumber - 1,
+          this.pageSize,
+          this.categoryId
+        )
+        .subscribe(this.processResult());
     } else {
-      // not category id available ... default to category id 1
-      // this.categoryId = 1;
+      //IN REAL APP ITS BETTER TO THROW ERROR IN ELSE CLAUSE WHEN NO ID OR NAME WAS FOUND!
+
+      // not category id available = list all products paginated!
       this.productService
         .getAllProductListPaginated(this.pageNumber - 1, this.pageSize)
-        .subscribe((data) => {
-          this.products = data._embedded.products;
-          this.pageNumber = data.page.number + 1;
-          this.pageSize = data.page.size;
-          this.pageTotalElements = data.page.totalElements;
-        });
+        .subscribe(this.processResult());
     }
+  }
 
-    //
-    // Check if we have a different category than previous
-    // Note: Angular will reuse a component if it is currently being viewed
-    //
+  updatePageSize(pageSize: string) {
+    this.pageSize = Number.parseInt(pageSize);
+    this.pageNumber = 1;
+    this.listOfProducts();
+  }
 
-    // if we have a different category id than previous
-    // then set thePageNumber back to 1
-    if (this.previousCategoryId != this.categoryId) {
-      this.pageNumber = 1;
-    }
+  addToCart(product: Product) {
+    const cartItem = new CartItem(product);
+    this.cartService.addToCart(cartItem);
+  }
 
-    this.previousCategoryId = this.categoryId;
-
-    // now get the products for the given category id
-    this.productService
-      .getProductListPaginated(
-        this.pageNumber - 1,
-        this.pageSize,
-        this.categoryId
-      )
-      .subscribe((data) => {
-        this.products = data._embedded.products;
-        this.pageNumber = data.page.number + 1;
-        this.pageSize = data.page.size;
-        this.pageTotalElements = data.page.totalElements;
-      });
+  private processResult() {
+    return (data: any) => {
+      this.products = data._embedded.products;
+      this.pageNumber = data.page.number + 1;
+      this.pageSize = data.page.size;
+      this.pageTotalElements = data.page.totalElements;
+    };
   }
 }

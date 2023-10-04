@@ -1,0 +1,89 @@
+<div class="main-content">
+  <div class="section-content section-content-p30">
+    <div class="container-fluid">
+      <div *ngIf="cartitems?.length !== 0; else elseBlock">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th width="10%">Product Image</th>
+              <th width="50%">Product Details</th>
+              <th width="30%"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of cartitems">
+              <td>
+                <img
+                  alt="image"
+                  src="{{ item.imageUrl }}"
+                  class="img-responsive"
+                  width="150px"
+                />
+              </td>
+              <td>
+                <p>{{ item.name }}</p>
+                <p>{{ item.unitPrice | currency : "USD" }}</p>
+              </td>
+              <td>
+                <div class="items">
+                  <label>Quantity: </label>
+
+                  <div class="row no-gutters">
+                    <!--plus button-->
+                    <div class="col">
+                      <button
+                        (click)="incrementQuantity(item)"
+                        title="increase"
+                        type="button"
+                        class="btn btn-primary btn-sm"
+                      >
+                        <i class="fas fa-plus"></i>
+                      </button>
+                    </div>
+
+                    <!-- quantity-->
+                    <div class="col ml-2 mr-1">{{ item.qunatity }}</div>
+
+                    <!-- minus button-->
+                    <div class="col">
+                      <button
+                        (click)="decrementQuantity(item)"
+                        title="decrease"
+                        type="button"
+                        class="btn btn-primary btn-sm"
+                      >
+                        <i class="fas fa-minus"></i>
+                      </button>
+                    </div>
+                    <!-- adding extra div to narrow the buttons (squash the space from right to left)-->
+                    <div class="col-8"></div>
+                  </div>
+                </div>
+                <p class="mt-2">
+                  Subtotal:
+                  {{ item.qunatity * item.unitPrice | currency : "USD" }}
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <!--colspan=2 makes 2 new columns that are empty-->
+              <td colspan="2"></td>
+              <td style="font-weight: bold">
+                <p>Total Quantity: {{ totalQuantity }}</p>
+                <p>Shipping: FREE</p>
+                <p>Total Price: {{ totalPrice | currency : "USD" }}</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <!--the if block should not be in the table tag because it executes the else block also in the table. if you want to move elseBlock out of the table 
+      content do it as it is now-->
+      <ng-template #elseBlock>
+        <div class="alert alert-warning col-md-12" role="alert">
+          Your shopping cart is empty
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>
