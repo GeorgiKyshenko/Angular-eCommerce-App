@@ -67,7 +67,10 @@ export class CartService {
     this.totalQuantity.next(totalQuantityValue);
   }
 
-  private remove(cartItem: CartItem) {
+  //this method is not private because it is used in cart-details component
+  // (in this case, we are removing one object from the array but with different value of quantity)
+
+  remove(cartItem: CartItem) {
     //get index of item in the array
     const itemIndex = this.cartItems.findIndex(
       (item) => item.id === cartItem.id
