@@ -1,6 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
-import { CartService } from 'src/app/services/cart.service';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  Validators,
+} from '@angular/forms';
+import { AppValidator } from 'src/app/Validators/Validators';
+import { Country } from 'src/app/models/Country';
+import { State } from 'src/app/models/State';
 import { ShopService } from 'src/app/services/shop.service';
 
 @Component({
@@ -14,6 +21,9 @@ export class CheckoutComponent implements OnInit {
   totalQuantity: number = 0;
   creditCardYears: number[] = [];
   creditCardMonths: number[] = [];
+  countries: Country[] = [];
+  shippingAddressStates: State[] = [];
+  billingAddressStates: State[] = [];
 
   constructor(
     private formBuilder: FormBuilder,
@@ -24,6 +34,7 @@ export class CheckoutComponent implements OnInit {
     this.checkoutFormGroup = this.initializeFormGroup();
     this.updateStatus();
     this.initializeCreditCardYearsAndMonths();
+    this.initializeCountrie();
   }
 
   updateStatus() {}
@@ -33,12 +44,21 @@ export class CheckoutComponent implements OnInit {
       this.checkoutFormGroup.controls['billingAddress'].setValue(
         this.checkoutFormGroup.controls['shippingAddress'].value
       );
+
+      //bug fix code
+      this.billingAddressStates = this.shippingAddressStates;
     } else {
       this.checkoutFormGroup.controls['billingAddress'].reset();
+
+      //bug fix
+      this.billingAddressStates = [];
     }
   }
 
   onSubmit() {
+    if (this.checkoutFormGroup.invalid) {
+      this.checkoutFormGroup.markAllAsTouched();
+    }
     console.log(`submit button works`);
     console.log(this.checkoutFormGroup.get('customer')?.value);
   }
@@ -54,6 +74,12 @@ export class CheckoutComponent implements OnInit {
     this.shopService
       .getCreditCardYears()
       .subscribe((data) => (this.creditCardYears = data));
+  }
+
+  initializeCountrie() {
+    this.shopService
+      .getCountries()
+      .subscribe((data) => (this.countries = data));
   }
 
   handleMonthsAndYear() {
@@ -79,9 +105,15 @@ export class CheckoutComponent implements OnInit {
   initializeFormGroup(): FormGroup {
     return this.formBuilder.group({
       customer: this.formBuilder.group({
-        firstName: [''],
-        lastName: [''],
-        email: [''],
+        firstName: new FormControl('', [
+          Validators.required,
+          Validators.minLength(2),
+        ]),
+        lastName: new FormControl('', [
+          Validators.required,
+          Validators.minLength(2),
+        ]),
+        email: new FormControl('', AppValidator.EMAIL_VALIDATION),
       }),
       shippingAddress: this.formBuilder.group({
         country: [''],
@@ -106,5 +138,29 @@ export class CheckoutComponent implements OnInit {
         expirationYear: [''],
       }),
     });
+  }
+  getStates(formGroupName: string) {
+    const formGroup = this.checkoutFormGroup.get(formGroupName);
+    const countryCode = formGroup?.value.country.code;
+
+    this.shopService.getStates(countryCode).subscribe((data) => {
+      if (formGroupName === 'shippingAddress') {
+        this.shippingAddressStates = data;
+      } else {
+        this.billingAddressStates = data;
+      }
+      //select first state as default
+      formGroup?.get('state')?.setValue(data[0]);
+    });
+  }
+
+  get firstName() {
+    return this.checkoutFormGroup.get('customer.firstName');
+  }
+  get lastName() {
+    return this.checkoutFormGroup.get('customer.lastName');
+  }
+  get email() {
+    return this.checkoutFormGroup.get('customer.email');
   }
 }
