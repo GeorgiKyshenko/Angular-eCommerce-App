@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core';
 import { CartItem } from '../models/CartItem';
-import { Subject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CartService {
   cartItems: CartItem[] = [];
-  totalPrice: Subject<number> = new Subject<number>();
-  totalQuantity: Subject<number> = new Subject<number>();
+  totalPrice: Subject<number> = new BehaviorSubject<number>(0);
+  totalQuantity: Subject<number> = new BehaviorSubject<number>(0);
 
   constructor() {}
 
@@ -72,7 +72,7 @@ export class CartService {
 
   remove(cartItem: CartItem) {
     //get index of item in the array
-    const itemIndex = this.cartItems.findIndex(
+    const itemIndex: number = this.cartItems.findIndex(
       (item) => item.id === cartItem.id
     );
     //if found remove the item from the array at given index

@@ -21,7 +21,9 @@
                   "
                   class="alert alert-danger mt-1"
                 >
-                  <div *ngIf="firstName?.errors?.['required']">
+                  <div
+                    *ngIf="firstName?.errors?.['required'] || firstName?.errors?.['whitespaceValidator']"
+                  >
                     First Name is Required!
                   </div>
 
@@ -47,7 +49,9 @@
                   "
                   class="alert alert-danger mt-1"
                 >
-                  <div *ngIf="lastName?.errors?.['required']">
+                  <div
+                    *ngIf="lastName?.errors?.['required'] || lastName?.errors?.['whitespaceValidator']"
+                  >
                     Last Name is Required!
                   </div>
 
@@ -98,6 +102,18 @@
                     {{ country.name }}
                   </option>
                 </select>
+                <div
+                  *ngIf="
+                    shippingAddressCountry?.invalid &&
+                    (shippingAddressCountry?.dirty ||
+                      shippingAddressCountry?.touched)
+                  "
+                  class="alert alert-danger mt-1"
+                >
+                  <div *ngIf="shippingAddressCountry?.errors?.['required']">
+                    Country is not selected!
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -110,6 +126,24 @@
                   formControlName="street"
                   type="text"
                 />
+                <div
+                  *ngIf="
+                    shippingAddressStreet?.invalid &&
+                    (shippingAddressStreet?.dirty ||
+                      shippingAddressStreet?.touched)
+                  "
+                  class="alert alert-danger mt-1"
+                >
+                  <div
+                    *ngIf="shippingAddressStreet?.errors?.['required'] || shippingAddressStreet?.errors?.['whitespaceValidator']"
+                  >
+                    Street Name is Required!
+                  </div>
+
+                  <div *ngIf="shippingAddressStreet?.errors?.['minlength']">
+                    Street Name must be atleas 2 charachters!
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -310,7 +344,13 @@
         </div>
         <!-- submit button-->
         <div class="text-center">
-          <button type="submit" class="btn btn-info">Purchase</button>
+          <button
+            type="submit"
+            class="btn btn-info"
+            [disabled]="!checkoutFormGroup.valid"
+          >
+            Purchase
+          </button>
         </div>
       </form>
     </div>
