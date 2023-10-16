@@ -5,10 +5,17 @@ import {
   FormGroup,
   Validators,
 } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AppValidator } from 'src/app/Validators/Validators';
+import { Address } from 'src/app/models/Address';
 import { Country } from 'src/app/models/Country';
+import { Customer } from 'src/app/models/Customer';
+import { OrderDetails } from 'src/app/models/OrderDetails';
+import { OrderItem } from 'src/app/models/Orderitem';
+import { Purchase } from 'src/app/models/Purchase';
 import { State } from 'src/app/models/State';
 import { CartService } from 'src/app/services/cart.service';
+import { CheckoutService } from 'src/app/services/checkout.service';
 import { ShopService } from 'src/app/services/shop.service';
 
 @Component({
@@ -29,7 +36,9 @@ export class CheckoutComponent implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     private readonly shopService: ShopService,
-    private readonly cartService: CartService
+    private readonly cartService: CartService,
+    private readonly checkoutService: CheckoutService,
+    private readonly router: Router
   ) {}
 
   ngOnInit(): void {
@@ -65,9 +74,76 @@ export class CheckoutComponent implements OnInit {
   onSubmit() {
     if (this.checkoutFormGroup.invalid) {
       this.checkoutFormGroup.markAllAsTouched();
+      return;
     }
-    console.log(`submit button works`);
-    console.log(this.checkoutFormGroup.get('customer')?.value);
+    // set up the order
+    let orderDetails = new OrderDetails(this.totalQuantity, this.totalPrice);
+
+    //get cat items
+    const cartItems = this.cartService.cartItems;
+
+    //create orderItems from cartitems
+    const orderItems: OrderItem[] = cartItems.map(
+      (cartItem) => new OrderItem(cartItem)
+    );
+
+    //set up purchase (total mess im just following the steps of the course instructor but this is very very bad practices)
+    let customer: Customer = this.checkoutFormGroup.controls['customer'].value;
+
+    //mess
+    let shippingAddress: Address =
+      this.checkoutFormGroup.controls['shippingAddress'].value;
+    const shippingState: State = JSON.parse(
+      JSON.stringify(shippingAddress.state)
+    );
+    const shippingCountry: Country = JSON.parse(
+      JSON.stringify(shippingAddress.country)
+    );
+    shippingAddress.state = shippingState.name;
+    shippingAddress.country = shippingCountry.name;
+
+    //more mess
+    let billingAddress: Address =
+      this.checkoutFormGroup.controls['billingAddress'].value;
+    const billingState: State = JSON.parse(
+      JSON.stringify(billingAddress.state)
+    );
+    const billingCountry: Country = JSON.parse(
+      JSON.stringify(billingAddress.country)
+    );
+    billingAddress.state = billingState.name;
+    billingAddress.country = billingCountry.name;
+
+    let purchase = new Purchase(
+      customer,
+      shippingAddress,
+      billingAddress,
+      orderDetails,
+      orderItems
+    );
+
+    this.checkoutService.placeOrder(purchase).subscribe({
+      next: (response) => {
+        alert(
+          `Your order has been recieved.\nOrder tracking number: ${response.orderTrackingNumber}`
+        );
+        //reset cart
+        this.resetCart();
+      },
+      error: (err) => {
+        alert(`There was and error: ${err.message}`);
+      },
+    });
+  }
+
+  resetCart() {
+    this.cartService.cartItems = [];
+    this.cartService.totalQuantity.next(0);
+    this.cartService.totalPrice.next(0);
+
+    this.checkoutFormGroup.reset();
+
+    this.router.navigateByUrl(`/products`);
   }
 
   initializeCreditCardYearsAndMonths() {
