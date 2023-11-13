@@ -20,7 +20,21 @@
     Logout
   </button>
 
-  <button type="button" routerLink="/members" class="security-btn ml-1">
+  <button
+    type="button"
+    *ngIf="isAuthenticated"
+    routerLink="/members"
+    class="security-btn ml-1"
+  >
     Member
+  </button>
+
+  <button
+    type="button"
+    *ngIf="isAuthenticated"
+    routerLink="/order-history"
+    class="security-btn ml-1"
+  >
+    Orders
   </button>
 </div>

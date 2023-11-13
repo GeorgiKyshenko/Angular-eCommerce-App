@@ -25,6 +25,7 @@ import {
 import { OktaAuth } from '@okta/okta-auth-js';
 import myAppConfig from './config/my-app-config';
 import { MemberPageComponent } from './components/member-page/member-page.component';
+import { OrderHistoryComponent } from './components/order-history/order-history.component';
 
 const oktaConfig = myAppConfig.oidc;
 const oktaAuth = new OktaAuth(oktaConfig);
@@ -39,6 +40,12 @@ const routes: Routes = [
   {
     path: 'members',
     component: MemberPageComponent,
+    canActivate: [OktaAuthGuard],
+    data: { onAuthRequired: sendToLoginPage },
+  },
+  {
+    path: 'order-history',
+    component: OrderHistoryComponent,
     canActivate: [OktaAuthGuard],
     data: { onAuthRequired: sendToLoginPage },
   },
@@ -68,6 +75,7 @@ const routes: Routes = [
     LoginComponent,
     LoginStatusComponent,
     MemberPageComponent,
+    OrderHistoryComponent,
   ],
   imports: [
     BrowserModule,

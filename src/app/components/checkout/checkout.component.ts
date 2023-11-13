@@ -32,6 +32,8 @@ export class CheckoutComponent implements OnInit {
   countries: Country[] = [];
   shippingAddressStates: State[] = [];
   billingAddressStates: State[] = [];
+  storage: Storage = sessionStorage;
+  userEmail: string = '';
 
   constructor(
     private formBuilder: FormBuilder,
@@ -42,6 +44,8 @@ export class CheckoutComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // read user email from browser session storage
+    this.userEmail = JSON.parse(this.storage.getItem('userEmail')!);
     this.checkoutFormGroup = this.initializeFormGroup();
     this.updateStatus();
     this.initializeCreditCardYearsAndMonths();
@@ -198,7 +202,7 @@ export class CheckoutComponent implements OnInit {
           Validators.minLength(2),
           AppValidator.whitespaceValidator,
         ]),
-        email: new FormControl('', AppValidator.EMAIL_VALIDATION),
+        email: new FormControl(this.userEmail, AppValidator.EMAIL_VALIDATION),
       }),
       shippingAddress: this.formBuilder.group({
         country: new FormControl('', Validators.required),

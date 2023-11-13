@@ -9,8 +9,16 @@ export class CartService {
   cartItems: CartItem[] = [];
   totalPrice: Subject<number> = new BehaviorSubject<number>(0);
   totalQuantity: Subject<number> = new BehaviorSubject<number>(0);
+  storage: Storage = sessionStorage; // remove data on closing the browser
+  // storage: Storage = localStorage;  keeps data on closing the browser
 
-  constructor() {}
+  constructor() {
+    let data = JSON.parse(this.storage.getItem('cartItems')!); // .parse coverts String to Object
+    if (data !== null) {
+      this.cartItems = data;
+      this.computeCartTotals();
+    }
+  }
 
   //this should call back-end api but for now is simulated with functionality only in front-end
   addToCart(cartItem: CartItem) {
@@ -53,6 +61,9 @@ export class CartService {
       this.computeCartTotals();
     }
   }
+  persistCartItemsInStorage() {
+    this.storage.setItem('cartItems', JSON.stringify(this.cartItems)); //convert Object to String
+  }
 
   computeCartTotals() {
     let totalPriceValue: number = 0;
@@ -65,6 +76,8 @@ export class CartService {
     //publish the new values...all subscribers will recieve the new data
     this.totalPrice.next(totalPriceValue);
     this.totalQuantity.next(totalQuantityValue);
+
+    this.persistCartItemsInStorage();
   }
 
   //this method is not private because it is used in cart-details component
