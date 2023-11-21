@@ -3,7 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 
 import { AppComponent } from './app.component';
 import { ProductListComponent } from './components/product-list/product-list.component';
-import { HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { ProductService } from './services/product.service';
 import { Routes, RouterModule, Router } from '@angular/router';
 import { ProductCategoryMenuComponent } from './components/product-category-menu/product-category-menu.component';
@@ -26,6 +26,7 @@ import { OktaAuth } from '@okta/okta-auth-js';
 import myAppConfig from './config/my-app-config';
 import { MemberPageComponent } from './components/member-page/member-page.component';
 import { OrderHistoryComponent } from './components/order-history/order-history.component';
+import { AuthInterceptor } from './services/auth.interceptor';
 
 const oktaConfig = myAppConfig.oidc;
 const oktaAuth = new OktaAuth(oktaConfig);
@@ -85,7 +86,11 @@ const routes: Routes = [
     OktaAuthModule,
     RouterModule.forRoot(routes),
   ],
-  providers: [ProductService, { provide: OKTA_CONFIG, useValue: { oktaAuth } }],
+  providers: [
+    ProductService,
+    { provide: OKTA_CONFIG, useValue: { oktaAuth } },
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

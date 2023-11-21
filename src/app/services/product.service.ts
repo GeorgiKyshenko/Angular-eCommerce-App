@@ -3,15 +3,17 @@ import { Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { Product } from '../models/product';
 import { ProductCategory } from '../common/product-category';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProductService {
   //this URL is set automatically in Spring Data Rest. Autocreated paths for products and category also, query params for size,page,sort
-  private baseUrl = 'http://localhost:8080/api/products';
-  private allProductsUrl = 'http://localhost:8080/api/products?size=100';
-  private productsCategoryURL = 'http://localhost:8080/api/product-category';
+  private baseUrl = environment.eCommerceAppUrl + '/products';
+  private allProductsUrl = environment.eCommerceAppUrl + '/products?size=100';
+  private productsCategoryURL =
+    environment.eCommerceAppUrl + '/product-category';
 
   constructor(private readonly httpClient: HttpClient) {}
 
