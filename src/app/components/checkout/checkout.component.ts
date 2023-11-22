@@ -39,7 +39,7 @@ export class CheckoutComponent implements OnInit {
 
   //initialize Stripe API
   stripe = Stripe(environment.stripePublishableKey);
-  paymentInfo: PaymentInfo = { amount: 0, currency: '' };
+  paymentInfo: PaymentInfo = { amount: 0, currency: '', receiptEmail: '' };
   cardElement: any;
   displayError: any = '';
 
@@ -163,6 +163,7 @@ export class CheckoutComponent implements OnInit {
     // compute paymentInfo
     this.paymentInfo.amount = Math.round(this.totalPrice * 100);
     this.paymentInfo.currency = 'USD';
+    this.paymentInfo.receiptEmail = purchase.customer.email;
 
     // if valid form: create payment intent, confirm card payment, place order
     if (
